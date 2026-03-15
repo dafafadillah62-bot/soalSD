@@ -12,7 +12,9 @@ import {
   XCircle,
   Sparkles,
   Loader2,
-  ArrowLeft
+  ArrowLeft,
+  Settings,
+  Save
 } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
 import { Subject, Question, QuizState } from './types';
@@ -21,6 +23,26 @@ import { SUBJECTS, QUESTIONS } from './constants';
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 
 export default function App() {
+  const [apiKeyMissing, setApiKeyMissing] = useState(false);
+  const [userApiKey, setUserApiKey] = useState<string>(() => localStorage.getItem('GEMINI_API_KEY') || "");
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [tempApiKey, setTempApiKey] = useState(userApiKey);
+
+  useEffect(() => {
+    const activeKey = userApiKey || process.env.GEMINI_API_KEY;
+    if (!activeKey || activeKey === "MY_GEMINI_API_KEY") {
+      setApiKeyMissing(true);
+    } else {
+      setApiKeyMissing(false);
+    }
+  }, [userApiKey]);
+
+  const saveApiKey = () => {
+    localStorage.setItem('GEMINI_API_KEY', tempApiKey);
+    setUserApiKey(tempApiKey);
+    setIsSettingsOpen(false);
+  };
+
   const [state, setState] = useState<QuizState>({
     currentQuestionIndex: 0,
     score: 0,
@@ -51,6 +73,9 @@ export default function App() {
     if (!state.selectedSubject) return;
     setIsGenerating(true);
     try {
+      const activeKey = userApiKey || process.env.GEMINI_API_KEY || "";
+      const customAi = new GoogleGenAI({ apiKey: activeKey });
+      
       const prompt = `Generate 3 multiple choice questions for elementary school students (SD) in Indonesia about ${state.selectedSubject}. 
       Return the result as a JSON array of objects with the following structure:
       {
@@ -62,7 +87,7 @@ export default function App() {
       }
       Make sure the language is simple and suitable for children.`;
 
-      const response = await ai.models.generateContent({
+      const response = await customAi.models.generateContent({
         model: "gemini-3-flash-preview",
         contents: prompt,
         config: {
@@ -135,6 +160,72 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#FDFCF8] text-[#2D2D2D] font-sans selection:bg-orange-200 pb-safe pt-safe">
+      {apiKeyMissing && (
+        <div className="bg-red-500 text-white p-2 text-center text-sm font-bold sticky top-0 z-50 flex items-center justify-center gap-2">
+          ⚠️ API Key Gemini belum dikonfigurasi. 
+          <button onClick={() => setIsSettingsOpen(true)} className="underline hover:text-white/80">Klik di sini untuk mengatur.</button>
+        </div>
+      )}
+      
+      <div className="fixed top-4 right-4 z-40">
+        <button 
+          onClick={() => setIsSettingsOpen(true)}
+          className="p-3 bg-white border-2 border-black rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
+        >
+          <Settings className="w-6 h-6" />
+        </button>
+      </div>
+
+      <AnimatePresence>
+        {isSettingsOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              className="bg-white p-8 rounded-[32px] border-4 border-black shadow-[16px_16px_0px_0px_rgba(0,0,0,1)] max-w-md w-full space-y-6"
+            >
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-black">Pengaturan API</h2>
+                <button onClick={() => setIsSettingsOpen(false)} className="text-gray-400 hover:text-black">
+                  <XCircle className="w-8 h-8" />
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                <p className="text-gray-600 text-sm">
+                  Masukkan API Key Gemini Anda untuk menggunakan fitur "Tambah Soal". Kunci ini akan disimpan secara lokal di browser Anda.
+                </p>
+                <div className="space-y-2">
+                  <label className="text-sm font-bold uppercase tracking-wider">Gemini API Key</label>
+                  <input 
+                    type="password"
+                    value={tempApiKey}
+                    onChange={(e) => setTempApiKey(e.target.value)}
+                    placeholder="Masukkan API Key..."
+                    className="w-full p-4 bg-gray-50 border-2 border-black rounded-xl focus:ring-2 focus:ring-orange-500 outline-none"
+                  />
+                </div>
+                <p className="text-[10px] text-gray-400 italic">
+                  Dapatkan API Key gratis di <a href="https://aistudio.google.com/app/apikey" target="_blank" className="underline">Google AI Studio</a>.
+                </p>
+              </div>
+
+              <button 
+                onClick={saveApiKey}
+                className="w-full py-4 bg-orange-500 text-white rounded-2xl font-bold text-xl flex items-center justify-center gap-2 hover:bg-orange-600 transition-all border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+              >
+                <Save className="w-6 h-6" /> Simpan Perubahan
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="max-w-2xl mx-auto px-4 py-8 md:py-16">
         
         <AnimatePresence mode="wait">
