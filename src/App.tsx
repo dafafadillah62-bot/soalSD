@@ -134,7 +134,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFCF8] text-[#2D2D2D] font-sans selection:bg-orange-200">
+    <div className="min-h-screen bg-[#FDFCF8] text-[#2D2D2D] font-sans selection:bg-orange-200 pb-safe pt-safe">
       <div className="max-w-2xl mx-auto px-4 py-8 md:py-16">
         
         <AnimatePresence mode="wait">

@@ -1,0 +1,23 @@
+{
+  "name": "Kuis Pintar SD",
+  "short_name": "Kuis SD",
+  "description": "Aplikasi kuis interaktif untuk siswa Sekolah Dasar.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FDFCF8",
+  "theme_color": "#F97316",
+  "icons": [
+    {
+      "src": "https://picsum.photos/seed/quiz/192/192",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://picsum.photos/seed/quiz/512/512",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -7,9 +7,17 @@
 
 body {
   @apply antialiased;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 button {
-  @apply cursor-pointer;
+  @apply cursor-pointer outline-none;
 }
+
+/* Prevent pull-to-refresh on mobile if needed, but let's keep it standard for now */
+html, body {
+  overscroll-behavior-y: none;
+}
+
 
